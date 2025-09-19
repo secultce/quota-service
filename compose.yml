@@ -4,13 +4,17 @@ services:
 #    image: hyperf/hyperf:8.3-alpine-v3.19-swoole-slim
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile   
+    # entrypoint: ["php", "bin/hyperf.php", "server:watch"]
+    volumes:
+      - .:/opt/www
+      - /opt/www/vendor
     ports:
       - '9501:9501'
     environment:
       - APP_ENV=dev
       - SCAN_CACHEABLE=false
-      - URL_MAPAS=2
+      - URL_MAPAS=url_mapa #exemplo: http://localhost:8088/
       # Passe as variáveis do .env para o container
       - DB_HOST=quota-db
       - DB_PORT=3306
@@ -29,7 +33,7 @@ services:
     container_name: quota-db
     image: mariadb:latest
     volumes:
-      - quota-db:/var/lib/mysql
+      - ./docker/mysql:/var/lib/mysql
     ports:
       - '3306:3306'
     environment:
