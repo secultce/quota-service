@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Model\AgentQuotasPolicy;
-use App\Model\QuotasPolicy;
 use App\Schema\AgentQuotasPolicySchema;
-use Carbon\Carbon;
+use App\Service\AgentQuotasPolicyService;
 use Exception;
 use Hyperf\Database\Model\Collection;
 use Hyperf\Swagger\Annotation as SA;
@@ -16,6 +15,10 @@ use OpenApi\Attributes\Schema;
 #[SA\HyperfServer('http')]
 class AgentQuotasPolicyController extends AbstractController
 {
+    public function __construct(
+        private AgentQuotasPolicyService $service
+    ) {}
+
     #[SA\Get(
         path: '/agent-quotas',
         description: 'Retorna uma lista de todos os relacionamento entre agentes e cotas',
@@ -33,7 +36,7 @@ class AgentQuotasPolicyController extends AbstractController
     )]
     public function index(): Collection
     {
-        return AgentQuotasPolicy::get();
+        return $this->service->listAll();
     }
 
     #[SA\Get(
@@ -62,7 +65,7 @@ class AgentQuotasPolicyController extends AbstractController
     )]
     public function show(int $id): AgentQuotasPolicy
     {
-        return AgentQuotasPolicy::findOrFail($id);
+        return $this->service->getById($id);
     }
 
     #[SA\Post(
@@ -88,14 +91,7 @@ class AgentQuotasPolicyController extends AbstractController
     public function store(): AgentQuotasPolicy
     {
         $data = $this->request->all();
-        $attributes = [
-            'agent_id' => $data['agent_id'],
-            'quotas_policy_id' => $data['quotas_policy_id'],
-        ];
-
-        $quota = QuotasPolicy::find($data['quotas_policy_id']);
-        $data['end_date'] = (new Carbon($data['start_date']))->addYears($quota->validity_duration);
-        return AgentQuotasPolicy::updateOrCreate($attributes, $data);
+        return $this->service->store($data);
     }
 
     /**
@@ -103,7 +99,9 @@ class AgentQuotasPolicyController extends AbstractController
      */
     public function delete(int $id): void
     {
+        $data = $this->request->all();
+
+        $this->service->delete($id, $data);
         $this->response->withStatus(204);
-        AgentQuotasPolicy::findOrFail($id)?->delete();
     }
 }
