@@ -15,4 +15,5 @@ use Hyperf\ExceptionHandler\Listener\ErrorExceptionHandler;
 return [
     ErrorExceptionHandler::class,
     FailToHandleListener::class,
+    App\Listener\StoreQuotaActivityLog::class,
 ];
